@@ -7,17 +7,11 @@
             <circle
               cx="25" cy="25" r="20"
               fill="none"
-              stroke="url(#spinnerGrad)"
+              stroke="#007AFF"
               stroke-width="3"
               stroke-linecap="round"
               stroke-dasharray="80, 200"
             />
-            <defs>
-              <linearGradient id="spinnerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#3b82f6"/>
-                <stop offset="100%" stop-color="#8b5cf6"/>
-              </linearGradient>
-            </defs>
           </svg>
         </div>
         <p class="loading-text">{{ text }}</p>
@@ -46,9 +40,9 @@ defineProps({
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(10, 14, 26, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(242, 242, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,8 +57,8 @@ defineProps({
 }
 
 .loading-spinner {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
 }
 
 .loading-spinner svg {
@@ -75,9 +69,9 @@ defineProps({
 
 .loading-text {
   font-size: 15px;
-  color: #94a3b8;
+  color: #8E8E93;
   font-weight: 500;
-  letter-spacing: 0.5px;
+  letter-spacing: -0.2px;
 }
 
 @keyframes spin {

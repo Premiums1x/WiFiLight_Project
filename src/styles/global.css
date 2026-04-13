@@ -1,26 +1,40 @@
 /**
- * 全局样式
- * 定义应用的设计系统：颜色、字体、基础布局
+ * 全局样式 — iOS 风格浅色设计系统
+ * 基于原型图的 Apple HIG 设计语言
  */
 
 /* ============================================================
    CSS 变量 / 设计令牌
    ============================================================ */
 :root {
-  /* 主色调 */
-  --color-bg: #0a0e1a;
-  --color-bg-card: rgba(255, 255, 255, 0.04);
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  /* iOS 主色系 */
+  --color-bg: #F2F2F7;
+  --color-bg-card: #FFFFFF;
+  --color-border-primary: rgba(0, 0, 0, 0.08);
+  --color-border-secondary: rgba(0, 0, 0, 0.06);
+  --color-border-tertiary: rgba(0, 0, 0, 0.04);
 
-  /* 功能色 */
-  --color-success: #10b981;
-  --color-error: #ef4444;
-  --color-warning: #f59e0b;
-  --color-info: #3b82f6;
-  --color-accent: #fbbf24;
+  /* 文字色 */
+  --color-text-primary: #1c1c1e;
+  --color-text-secondary: #8E8E93;
+  --color-text-tertiary: #AEAEB2;
+  --color-text-quaternary: #C7C7CC;
+
+  /* iOS 系统色 */
+  --color-blue: #007AFF;
+  --color-green: #34C759;
+  --color-red: #FF3B30;
+  --color-orange: #FF9F0A;
+  --color-yellow: #FFD60A;
+  --color-purple: #7F77DD;
+  --color-teal: #5AC8FA;
+
+  /* 功能色背景 */
+  --color-green-bg: #E8F7EE;
+  --color-red-bg: #FEF0F0;
+  --color-blue-bg: #EAF3FF;
+  --color-amber-bg: #FFF5E0;
+  --color-purple-bg: #F2EFFE;
 
   /* 间距 */
   --space-xs: 4px;
@@ -30,13 +44,14 @@
   --space-xl: 32px;
 
   /* 圆角 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-full: 9999px;
 
   /* 字体 */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
 }
 
 /* ============================================================
@@ -57,25 +72,20 @@ html {
 
 body {
   font-family: var(--font-family);
-  background: var(--color-bg);
+  background: #E8E8ED;
   color: var(--color-text-primary);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* 深色渐变背景 */
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-    var(--color-bg);
-  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0 2rem;
 }
 
 #app {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
+  width: 380px;
+  max-width: 100%;
   position: relative;
 }
 
@@ -89,21 +99,12 @@ button,
 }
 
 /* ============================================================
-   滚动条美化
+   过渡工具类
    ============================================================ */
-::-webkit-scrollbar {
-  width: 4px;
+.transition-colors {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+.transition-all {
+  transition: all 0.3s ease;
 }
