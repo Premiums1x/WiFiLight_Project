@@ -1,68 +1,20 @@
-/**
- * 全局样式 — iOS 风格浅色设计系统
- * 基于原型图的 Apple HIG 设计语言
- */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
 
-/* ============================================================
-   CSS 变量 / 设计令牌
-   ============================================================ */
 :root {
-  /* iOS 主色系 */
-  --color-bg: #F2F2F7;
-  --color-bg-card: #FFFFFF;
-  --color-border-primary: rgba(0, 0, 0, 0.08);
-  --color-border-secondary: rgba(0, 0, 0, 0.06);
-  --color-border-tertiary: rgba(0, 0, 0, 0.04);
-
-  /* 文字色 */
-  --color-text-primary: #1c1c1e;
-  --color-text-secondary: #8E8E93;
-  --color-text-tertiary: #AEAEB2;
-  --color-text-quaternary: #C7C7CC;
-
-  /* iOS 系统色 */
-  --color-blue: #007AFF;
-  --color-green: #34C759;
-  --color-red: #FF3B30;
-  --color-orange: #FF9F0A;
-  --color-yellow: #FFD60A;
-  --color-purple: #7F77DD;
-  --color-teal: #5AC8FA;
-
-  /* 功能色背景 */
-  --color-green-bg: #E8F7EE;
-  --color-red-bg: #FEF0F0;
-  --color-blue-bg: #EAF3FF;
-  --color-amber-bg: #FFF5E0;
-  --color-purple-bg: #F2EFFE;
-
-  /* 间距 */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-
-  /* 圆角 */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 18px;
-  --radius-xl: 22px;
-  --radius-full: 9999px;
-
-  /* 字体 */
-  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  color-scheme: dark;
+  font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-/* ============================================================
-   全局重置
-   ============================================================ */
 *,
 *::before,
 *::after {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
 }
 
 html {
@@ -71,40 +23,34 @@ html {
 }
 
 body {
-  font-family: var(--font-family);
-  background: #E8E8ED;
-  color: var(--color-text-primary);
+  margin: 0;
   min-height: 100vh;
-  line-height: 1.5;
+  background:
+    radial-gradient(circle at top, rgba(255, 204, 0, 0.08), transparent 35%),
+    linear-gradient(180deg, #12151b 0%, #090b10 100%);
+  color: #ffffff;
+  font-family: inherit;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  display: flex;
-  justify-content: center;
-  padding: 1.5rem 0 2rem;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: none;
+  background: none;
+}
+
+img,
+svg {
+  display: block;
 }
 
 #app {
-  width: 380px;
-  max-width: 100%;
-  position: relative;
-}
-
-/* ============================================================
-   选择禁止（移动端更好的体验）
-   ============================================================ */
-button,
-[role="button"] {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* ============================================================
-   过渡工具类
-   ============================================================ */
-.transition-colors {
-  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
-}
-
-.transition-all {
-  transition: all 0.3s ease;
+  width: 100%;
 }

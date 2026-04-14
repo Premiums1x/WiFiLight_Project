@@ -1,128 +1,122 @@
 <template>
   <Teleport to="body">
-    <div class="toast-container">
-      <TransitionGroup name="toast">
-        <div
-          v-for="toast in toasts"
-          :key="toast.id"
-          :class="['toast-item', `toast-${toast.type}`, { 'toast-leaving': !toast.visible }]"
-        >
-          <span class="toast-icon">
-            <template v-if="toast.type === 'success'">✓</template>
-            <template v-else-if="toast.type === 'error'">✕</template>
-            <template v-else>ℹ</template>
-          </span>
-          <span class="toast-message">{{ toast.message }}</span>
+    <Transition name="toast-slide">
+      <div v-if="toast.visible" class="hud-toast" :class="toast.type">
+        <div class="toast-icon">
+          <svg v-if="toast.icon === 'connect'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-linecap="round" />
+            <polyline points="22 4 12 14.01 9 11.01" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <svg v-else-if="toast.icon === 'disconnect'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" stroke-linecap="round" />
+            <line x1="9" y1="9" x2="15" y2="15" stroke-linecap="round" />
+          </svg>
+          <svg v-else-if="toast.icon === 'light-on'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m12.72-12.72l-1.41 1.41" stroke-linecap="round" />
+          </svg>
+          <svg v-else-if="toast.icon === 'light-off'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <svg v-else-if="toast.icon === 'warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-linejoin="round" />
+            <line x1="12" y1="9" x2="12" y2="13" stroke-linecap="round" />
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round" />
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" stroke-linecap="round" />
+            <line x1="12" y1="16" x2="12.01" y2="16" stroke-linecap="round" />
+          </svg>
         </div>
-      </TransitionGroup>
-    </div>
+        <span class="toast-text">{{ toast.message }}</span>
+      </div>
+    </Transition>
   </Teleport>
 </template>
 
 <script setup>
 import { useToast } from '@/composables/useToast'
 
-const { toasts } = useToast()
+const { toast } = useToast()
 </script>
 
 <style scoped>
-.toast-container {
+.hud-toast {
   position: fixed;
-  top: 24px;
+  top: 32px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  pointer-events: none;
-  width: 90%;
-  max-width: 340px;
-}
-
-.toast-item {
+  z-index: 2000;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 500;
-  pointer-events: auto;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.toast-success {
-  background: rgba(255, 255, 255, 0.92);
-  border: 0.5px solid rgba(52, 199, 89, 0.3);
-  color: #1c1c1e;
-}
-
-.toast-error {
-  background: rgba(255, 255, 255, 0.92);
-  border: 0.5px solid rgba(255, 59, 48, 0.3);
-  color: #1c1c1e;
-}
-
-.toast-info {
-  background: rgba(255, 255, 255, 0.92);
-  border: 0.5px solid rgba(0, 122, 255, 0.3);
-  color: #1c1c1e;
+  gap: 12px;
+  min-width: min(420px, calc(100vw - 32px));
+  max-width: min(460px, calc(100vw - 32px));
+  padding: 12px 24px 12px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(30, 33, 40, 0.84);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
 }
 
 .toast-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
 }
 
-.toast-success .toast-icon {
-  background: #E8F7EE;
-  color: #34C759;
+.toast-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
-.toast-error .toast-icon {
-  background: #FEF0F0;
-  color: #FF3B30;
+.toast-text {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
-.toast-info .toast-icon {
-  background: #EAF3FF;
-  color: #007AFF;
+.hud-toast.success .toast-icon {
+  color: #32d74b;
 }
 
-.toast-message {
-  flex: 1;
-  line-height: 1.4;
+.hud-toast.error .toast-icon {
+  color: #ff453a;
 }
 
-/* 过渡动画 */
-.toast-enter-active {
-  transition: all 0.35s cubic-bezier(0.21, 1.02, 0.73, 1);
+.hud-toast.warning .toast-icon {
+  color: #ffd60a;
 }
 
-.toast-leave-active {
-  transition: all 0.3s cubic-bezier(0.06, 0.71, 0.55, 1);
+.hud-toast.default .toast-icon {
+  color: #c5cbe1;
 }
 
-.toast-enter-from {
+.toast-slide-enter-active,
+.toast-slide-leave-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast-slide-enter-from,
+.toast-slide-leave-to {
   opacity: 0;
-  transform: translateY(-20px) scale(0.95);
+  transform: translate(-50%, -24px);
 }
 
-.toast-leave-to {
-  opacity: 0;
-  transform: translateY(-10px) scale(0.95);
+@media (max-width: 640px) {
+  .hud-toast {
+    top: 18px;
+    min-width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    padding: 11px 18px 11px 16px;
+  }
 }
 </style>

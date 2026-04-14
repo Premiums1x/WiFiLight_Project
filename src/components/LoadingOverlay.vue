@@ -1,19 +1,9 @@
 <template>
-  <Transition name="fade">
-    <div class="loading-overlay" v-if="visible">
-      <div class="loading-content">
-        <div class="loading-spinner">
-          <svg viewBox="0 0 50 50">
-            <circle
-              cx="25" cy="25" r="20"
-              fill="none"
-              stroke="#007AFF"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-dasharray="80, 200"
-            />
-          </svg>
-        </div>
+  <Transition name="overlay-fade">
+    <div v-if="visible" class="loading-overlay">
+      <div class="loading-panel">
+        <div class="loading-ring"></div>
+        <p class="loading-title">SYSTEM SYNC</p>
         <p class="loading-text">{{ text }}</p>
       </div>
     </div>
@@ -28,7 +18,7 @@ defineProps({
   },
   text: {
     type: String,
-    default: '正在连接设备...'
+    default: '正在同步控制面板...'
   }
 })
 </script>
@@ -36,58 +26,63 @@ defineProps({
 <style scoped>
 .loading-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(242, 242, 247, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  inset: 0;
+  z-index: 1500;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  background: rgba(10, 13, 18, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+.loading-panel {
+  width: min(320px, calc(100vw - 40px));
+  padding: 28px 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(34, 38, 47, 0.96), rgba(16, 18, 24, 0.96));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  text-align: center;
 }
 
-.loading-spinner {
-  width: 48px;
-  height: 48px;
+.loading-ring {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-top-color: #ffcc00;
+  animation: spin 0.9s linear infinite;
 }
 
-.loading-spinner svg {
-  width: 100%;
-  height: 100%;
-  animation: spin 1.2s linear infinite;
+.loading-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
 }
 
 .loading-text {
-  font-size: 15px;
-  color: #8E8E93;
-  font-weight: 500;
-  letter-spacing: -0.2px;
+  margin: 10px 0 0;
+  color: #c5cbe1;
+  font-size: 13px;
 }
 
 @keyframes spin {
-  100% {
+  to {
     transform: rotate(360deg);
   }
 }
 
-/* 过渡动画 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.28s ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
   opacity: 0;
 }
 </style>
