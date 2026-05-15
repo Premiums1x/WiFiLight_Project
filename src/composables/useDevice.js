@@ -1,14 +1,21 @@
 import { computed, onUnmounted, ref } from 'vue'
-import { getDeviceStatus, setSystemOnline, turnLightOff, turnLightOn } from '@/api/device'
+import { getDeviceStatus, setActiveLight, turnLightOff, turnLightOn } from '@/api/device'
 
 const THEME_STORAGE_KEY = 'wifi-light-theme'
+const LIGHT_COLOR_ORDER = ['red', 'yellow', 'green']
+const LIGHT_COLOR_LABELS = {
+  red: '红灯',
+  yellow: '黄灯',
+  green: '绿灯',
+  off: '关闭'
+}
 
 function createDefaultTelemetry() {
   return {
     signalDbm: -45,
     latencyMs: 12,
     uptimeSeconds: 0,
-    ipAddress: '192.168.4.1'
+    ipAddress: '192.168.12.1'
   }
 }
 
@@ -37,6 +44,12 @@ function formatUptimeClock(totalSeconds) {
 export function useDevice() {
   const systemOnline = ref(false)
   const lightOn = ref(false)
+  const activeLight = ref('off')
+  const lights = ref({
+    red: false,
+    yellow: false,
+    green: false
+  })
   const telemetry = ref(createDefaultTelemetry())
   const theme = ref(getStoredTheme())
   const loading = ref(false)
@@ -50,6 +63,12 @@ export function useDevice() {
   const latencyDisplay = computed(() => `${telemetry.value.latencyMs}ms`)
   const uptimeDisplay = computed(() => formatUptimeClock(telemetry.value.uptimeSeconds))
   const ipDisplay = computed(() => telemetry.value.ipAddress)
+  const activeLightLabel = computed(() => LIGHT_COLOR_LABELS[activeLight.value] || LIGHT_COLOR_LABELS.off)
+  const lightActive = computed(() => activeLight.value !== 'off')
+
+  function normalizeLightColor(color) {
+    return LIGHT_COLOR_ORDER.includes(color) ? color : 'off'
+  }
 
   function persistTheme(nextTheme) {
     if (typeof window !== 'undefined') {
@@ -81,15 +100,24 @@ export function useDevice() {
 
   function syncState(payload) {
     const nextTelemetry = payload?.telemetry || createDefaultTelemetry()
+    const nextActiveLight = normalizeLightColor(payload?.activeLight)
+    const resolvedActiveLight = nextActiveLight === 'off' && payload?.lightOn ? 'red' : nextActiveLight
+    const nextLights = payload?.lights || {}
 
     systemOnline.value = Boolean(payload?.systemOnline)
-    lightOn.value = Boolean(payload?.lightOn)
+    activeLight.value = systemOnline.value ? resolvedActiveLight : 'off'
+    lightOn.value = systemOnline.value && (Boolean(payload?.lightOn) || activeLight.value !== 'off')
+    lights.value = {
+      red: activeLight.value === 'red' || Boolean(nextLights.red),
+      yellow: activeLight.value === 'yellow' || Boolean(nextLights.yellow),
+      green: activeLight.value === 'green' || Boolean(nextLights.green)
+    }
     lastSyncAt.value = payload?.updatedAt || ''
     telemetry.value = {
       signalDbm: Number(nextTelemetry.signalDbm ?? -45),
       latencyMs: Number(nextTelemetry.latencyMs ?? 12),
       uptimeSeconds: Number(nextTelemetry.uptimeSeconds ?? 0),
-      ipAddress: nextTelemetry.ipAddress || '192.168.4.1'
+      ipAddress: nextTelemetry.ipAddress || '192.168.12.1'
     }
 
     if (systemOnline.value) {
@@ -101,6 +129,29 @@ export function useDevice() {
         uptimeSeconds: 0
       }
       lightOn.value = false
+      activeLight.value = 'off'
+      lights.value = {
+        red: false,
+        yellow: false,
+        green: false
+      }
+    }
+  }
+
+  function applyOfflineState() {
+    systemOnline.value = false
+    lightOn.value = false
+    activeLight.value = 'off'
+    lights.value = {
+      red: false,
+      yellow: false,
+      green: false
+    }
+    lastSyncAt.value = ''
+    stopUptimeTimer()
+    telemetry.value = {
+      ...createDefaultTelemetry(),
+      ipAddress: telemetry.value.ipAddress || '192.168.12.1'
     }
   }
 
@@ -118,27 +169,11 @@ export function useDevice() {
       return { success: true, data: response.data }
     } catch (err) {
       error.value = err.message || '获取状态失败'
-      stopUptimeTimer()
+      applyOfflineState()
       return { success: false, message: error.value }
     } finally {
       loading.value = false
       initialLoading.value = false
-    }
-  }
-
-  async function toggleSystemState() {
-    loading.value = true
-    error.value = ''
-
-    try {
-      const response = await setSystemOnline(!systemOnline.value)
-      syncState(response.data)
-      return { success: true, message: response.message, online: systemOnline.value }
-    } catch (err) {
-      error.value = err.message || '系统状态切换失败'
-      return { success: false, message: error.value }
-    } finally {
-      loading.value = false
     }
   }
 
@@ -162,11 +197,46 @@ export function useDevice() {
       return {
         success: true,
         message: response.message,
-        icon: response.data.lightOn ? 'light-on' : 'light-off',
-        type: response.data.lightOn ? 'success' : 'default'
+        icon: lightActive.value ? 'light-on' : 'light-off',
+        type: lightActive.value ? 'success' : 'default'
       }
     } catch (err) {
       error.value = err.message || '操作失败'
+      applyOfflineState()
+      return { success: false, message: error.value, type: 'error', icon: 'disconnect' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function cycleLightColor() {
+    if (!systemOnline.value) {
+      return {
+        success: false,
+        type: 'warning',
+        icon: 'warning',
+        message: '无法控制：请先连接远程服务器'
+      }
+    }
+
+    loading.value = true
+    error.value = ''
+
+    try {
+      const currentIndex = LIGHT_COLOR_ORDER.indexOf(activeLight.value)
+      const nextColor = LIGHT_COLOR_ORDER[(currentIndex + 1) % LIGHT_COLOR_ORDER.length]
+      const response = await setActiveLight(nextColor)
+      syncState(response.data)
+
+      return {
+        success: true,
+        message: `已切换为${activeLightLabel.value}`,
+        icon: 'light-on',
+        type: 'success'
+      }
+    } catch (err) {
+      error.value = err.message || '操作失败'
+      applyOfflineState()
       return { success: false, message: error.value, type: 'error', icon: 'disconnect' }
     } finally {
       loading.value = false
@@ -189,6 +259,10 @@ export function useDevice() {
   return {
     systemOnline,
     lightOn,
+    lightActive,
+    activeLight,
+    activeLightLabel,
+    lights,
     telemetry,
     theme,
     loading,
@@ -201,8 +275,8 @@ export function useDevice() {
     ipDisplay,
     fetchStatus,
     toggleLight,
+    cycleLightColor,
     toggleTheme,
-    setTheme,
-    toggleSystemState
+    setTheme
   }
 }

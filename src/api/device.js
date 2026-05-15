@@ -12,6 +12,6 @@ export function turnLightOff() {
   return request.get('/off')
 }
 
-export function setSystemOnline(online) {
-  return request.get(online ? '/mock/set-online' : '/mock/set-offline')
+export function setActiveLight(color) {
+  return request.get(`/light/${color}`)
 }

@@ -1,13 +1,17 @@
 <template>
-  <div class="hud-canvas" :class="{ 'light-theme': theme === 'light', 'server-offline': !systemOnline }">
-    <div class="ambient-mesh" :class="{ 'light-active': systemOnline && lightOn }"></div>
+  <div
+    class="hud-canvas"
+    :class="{ 'light-theme': theme === 'light', 'server-offline': !systemOnline }"
+    :style="hudAccentStyle"
+  >
+    <div class="ambient-mesh" :class="{ 'light-active': systemOnline && lightActive }"></div>
 
     <LoadingOverlay :visible="initialLoading" text="正在同步控制面板..." />
     <ToastMessage />
 
     <header class="top-nav">
       <div class="sys-heading">
-        <div class="sys-title">NodeMCU<span class="fw-light">// IoT.04</span></div>
+        <div class="sys-title">Hi3861<span class="fw-light">// IoT.04</span></div>
         <div class="sys-subtitle">{{ headerSubtitle }}</div>
       </div>
 
@@ -27,10 +31,10 @@
           </svg>
         </button>
 
-        <button class="skeuo-btn pill-btn" :disabled="loading" @click="handleSystemToggle">
+        <div class="skeuo-btn pill-btn status-pill">
           <div class="led-indicator" :class="{ 'led-on': systemOnline }"></div>
           <span class="toggle-text">{{ systemOnline ? 'SYS ONLINE' : 'SYS OFFLINE' }}</span>
-        </button>
+        </div>
       </div>
     </header>
 
@@ -38,7 +42,7 @@
       <div class="interaction-wrapper" :class="{ 'is-disabled': !systemOnline || loading }">
         <button
           class="recessed-crater"
-          :class="{ 'crater-active': systemOnline && lightOn }"
+          :class="{ 'crater-active': systemOnline && lightActive }"
           :disabled="loading || initialLoading"
           @click="handleLightToggle"
         >
@@ -53,6 +57,27 @@
           </div>
         </button>
       </div>
+
+      <button
+        class="skeuo-btn color-cycle-btn"
+        :disabled="!systemOnline || loading || initialLoading"
+        :title="`当前${activeLightLabel}，点击切换灯色`"
+        @click="handleColorCycle"
+      >
+        <svg class="color-cycle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M17 2.5h1.5A3.5 3.5 0 0 1 22 6v1.5" stroke-linecap="round" />
+          <path d="M22 16.5V18a3.5 3.5 0 0 1-3.5 3.5H17" stroke-linecap="round" />
+          <path d="M7 21.5H5.5A3.5 3.5 0 0 1 2 18v-1.5" stroke-linecap="round" />
+          <path d="M2 7.5V6a3.5 3.5 0 0 1 3.5-3.5H7" stroke-linecap="round" />
+          <circle cx="12" cy="7.2" r="2.2" :fill="colorSignal.red" stroke="none" />
+          <circle cx="12" cy="12" r="2.2" :fill="colorSignal.yellow" stroke="none" />
+          <circle cx="12" cy="16.8" r="2.2" :fill="colorSignal.green" stroke="none" />
+        </svg>
+        <span class="color-copy">
+          <span class="color-command">切换灯色</span>
+          <span class="color-state">{{ activeLightLabel }}</span>
+        </span>
+      </button>
     </main>
 
     <footer class="floating-data-stream">
@@ -88,7 +113,9 @@ import { useToast } from '@/composables/useToast'
 
 const {
   systemOnline,
-  lightOn,
+  lightActive,
+  activeLight,
+  activeLightLabel,
   theme,
   loading,
   initialLoading,
@@ -99,8 +126,8 @@ const {
   ipDisplay,
   fetchStatus,
   toggleLight,
-  toggleTheme,
-  toggleSystemState
+  cycleLightColor,
+  toggleTheme
 } = useDevice()
 
 const toast = useToast()
@@ -118,7 +145,7 @@ const primaryStateLabel = computed(() => {
     return 'LINK LOST'
   }
 
-  return lightOn.value ? 'ACTIVE' : 'STANDBY'
+  return lightActive.value ? activeLight.value.toUpperCase() : 'STANDBY'
 })
 
 const secondaryStateLabel = computed(() => {
@@ -126,26 +153,76 @@ const secondaryStateLabel = computed(() => {
     return 'REMOTE SYSTEM OFFLINE'
   }
 
-  return lightOn.value ? 'LAMP OUTPUT ENGAGED' : 'SYSTEM READY'
+  return lightActive.value ? `${activeLightLabel.value} OUTPUT ENGAGED` : 'SYSTEM READY'
 })
 
-async function handleSystemToggle() {
-  const result = await toggleSystemState()
-
-  if (!result.success) {
-    toast.error(result.message, 'disconnect')
-    return
+const activeColorConfig = computed(() => {
+  const colorMap = {
+    red: {
+      accent: '#ff453a',
+      mesh: 'rgba(255, 69, 58, 0.12)',
+      signal: {
+        red: '#ff453a',
+        yellow: 'rgba(255, 214, 10, 0.24)',
+        green: 'rgba(50, 215, 75, 0.24)'
+      }
+    },
+    yellow: {
+      accent: '#ffd60a',
+      mesh: 'rgba(255, 214, 10, 0.12)',
+      signal: {
+        red: 'rgba(255, 69, 58, 0.24)',
+        yellow: '#ffd60a',
+        green: 'rgba(50, 215, 75, 0.24)'
+      }
+    },
+    green: {
+      accent: '#32d74b',
+      mesh: 'rgba(50, 215, 75, 0.12)',
+      signal: {
+        red: 'rgba(255, 69, 58, 0.24)',
+        yellow: 'rgba(255, 214, 10, 0.24)',
+        green: '#32d74b'
+      }
+    },
+    off: {
+      accent: theme.value === 'dark' ? '#ffcc00' : '#ff9500',
+      mesh: theme.value === 'dark' ? 'rgba(255, 204, 0, 0.1)' : 'rgba(255, 149, 0, 0.08)',
+      signal: {
+        red: 'rgba(255, 69, 58, 0.28)',
+        yellow: 'rgba(255, 214, 10, 0.28)',
+        green: 'rgba(50, 215, 75, 0.28)'
+      }
+    }
   }
 
-  if (result.online) {
-    toast.success(result.message || '已与 NodeMCU 建立安全连接', 'connect')
-  } else {
-    toast.error(result.message || '失去服务器连接，系统已离线', 'disconnect')
-  }
-}
+  return colorMap[activeLight.value] || colorMap.off
+})
+
+const hudAccentStyle = computed(() => ({
+  '--accent-color': activeColorConfig.value.accent,
+  '--mesh-active': activeColorConfig.value.mesh
+}))
+
+const colorSignal = computed(() => activeColorConfig.value.signal)
 
 async function handleLightToggle() {
   const result = await toggleLight()
+
+  if (!result.success) {
+    if (result.type === 'warning') {
+      toast.warning(result.message, result.icon)
+    } else {
+      toast.error(result.message, result.icon || 'disconnect')
+    }
+    return
+  }
+
+  toast.showToast(result.message, result.type, result.icon)
+}
+
+async function handleColorCycle() {
+  const result = await cycleLightColor()
 
   if (!result.success) {
     if (result.type === 'warning') {
@@ -311,6 +388,10 @@ onMounted(async () => {
   letter-spacing: 0.8px;
 }
 
+.status-pill {
+  cursor: default;
+}
+
 .led-indicator {
   width: 8px;
   height: 8px;
@@ -330,8 +411,10 @@ onMounted(async () => {
   z-index: 2;
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 28px;
   padding: 20px;
 }
 
@@ -426,6 +509,54 @@ onMounted(async () => {
   text-align: center;
 }
 
+.color-cycle-btn {
+  min-width: 220px;
+  height: 56px;
+  gap: 14px;
+  padding: 0 18px;
+  border-radius: 28px;
+}
+
+.color-cycle-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.color-cycle-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--text-secondary);
+  transition: color 0.3s ease, filter 0.3s ease;
+}
+
+.color-cycle-btn:not(:disabled) .color-cycle-icon {
+  color: var(--accent-color);
+  filter: drop-shadow(0 0 8px var(--accent-color));
+}
+
+.color-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.color-command {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.color-state {
+  margin-top: 6px;
+  color: var(--accent-color);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+}
+
 .floating-data-stream {
   position: relative;
   z-index: 2;
@@ -499,6 +630,7 @@ onMounted(async () => {
   }
 
   .core-zone {
+    gap: 22px;
     padding: 12px 16px 24px;
   }
 
@@ -520,6 +652,12 @@ onMounted(async () => {
   .state-meta {
     font-size: 10px;
     letter-spacing: 1.3px;
+  }
+
+  .color-cycle-btn {
+    width: min(100%, 260px);
+    min-width: 0;
+    height: 52px;
   }
 
   .floating-data-stream {

@@ -3,15 +3,15 @@
  *
  * 【这个文件做了什么？】
  * 1. 创建一个统一的 Axios 实例，所有请求都通过它发出
- * 2. 配置 baseURL —— 所有请求都以 /api 开头，Vite 会代理到 mock 服务
+ * 2. 配置 baseURL —— 所有请求都以 /api 开头，Vite 会代理到真实设备地址
  * 3. 配置 timeout —— 超时自动取消请求
  * 4. 配置请求拦截器 —— 在请求发出前做统一处理
  * 5. 配置响应拦截器 —— 在响应返回后做统一处理和错误捕获
  *
- * 【未来如何切换到真实 NodeMCU？】
- * 只需要修改下面的 baseURL：
- *   开发阶段（Mock）：baseURL = '/api'
- *   真实设备：baseURL = 'http://192.168.x.x'（你的 NodeMCU 局域网 IP）
+ * 【当前如何连接真实设备？】
+ * 1. 保持 baseURL = '/api'
+ * 2. 在 vite.config.js 中通过 VITE_DEVICE_TARGET 指向 Hi3861 的局域网 IP
+ * 3. 开发环境下由 Vite 代理把请求转发到真实设备
  */
 
 import axios from 'axios'
@@ -20,12 +20,11 @@ import axios from 'axios'
 // 创建 Axios 实例
 // ============================================================
 const request = axios.create({
-  // 基础路径：开发阶段走 Vite 代理到 mock 服务
-  // 切换到真实 NodeMCU 时，改为 'http://<NodeMCU的IP地址>'
-  baseURL: '/api',
+  // 基础路径：前端统一走 /api，由 Vite 代理到真实设备
+  baseURL: 'http://192.168.12.1',
 
   // 请求超时时间（毫秒）
-  // NodeMCU 在局域网中，5秒足够了
+  // Hi3861 在局域网中，5秒足够了
   timeout: 5000,
 
   // 响应数据类型

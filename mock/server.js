@@ -5,6 +5,10 @@
  * - GET /status            返回完整设备状态快照
  * - GET /on                模拟打开灯
  * - GET /off               模拟关闭灯
+ * - GET /light/red         切换红灯
+ * - GET /light/yellow      切换黄灯
+ * - GET /light/green       切换绿灯
+ * - GET /light/off         关闭灯
  * - GET /mock/set-offline  模拟设备离线
  * - GET /mock/set-online   模拟设备上线
  * - GET /mock/set-fail     开启失败模拟
@@ -23,6 +27,7 @@ app.use(cors())
 const deviceState = {
   systemOnline: true,
   lightOn: false,
+  activeLight: 'off',
   updatedAt: getNow(),
   onlineStartedAt: Date.now(),
   accumulatedUptimeSeconds: 0,
@@ -70,6 +75,12 @@ function syncUpdatedAt() {
   deviceState.updatedAt = getNow()
 }
 
+function setActiveLight(color) {
+  deviceState.activeLight = color
+  deviceState.lightOn = color !== 'off'
+  syncUpdatedAt()
+}
+
 function setSystemOnline(nextOnline) {
   if (nextOnline === deviceState.systemOnline) {
     syncUpdatedAt()
@@ -82,7 +93,7 @@ function setSystemOnline(nextOnline) {
   } else {
     deviceState.accumulatedUptimeSeconds = getUptimeSeconds()
     deviceState.systemOnline = false
-    deviceState.lightOn = false
+    setActiveLight('off')
     deviceState.accumulatedUptimeSeconds = 0
   }
 
@@ -95,6 +106,12 @@ function buildDevicePayload() {
   return {
     systemOnline: deviceState.systemOnline,
     lightOn: deviceState.systemOnline ? deviceState.lightOn : false,
+    activeLight: deviceState.systemOnline ? deviceState.activeLight : 'off',
+    lights: {
+      red: deviceState.systemOnline && deviceState.activeLight === 'red',
+      yellow: deviceState.systemOnline && deviceState.activeLight === 'yellow',
+      green: deviceState.systemOnline && deviceState.activeLight === 'green'
+    },
     updatedAt: deviceState.updatedAt,
     telemetry: {
       signalDbm: deviceState.telemetry.signalDbm,
@@ -141,8 +158,7 @@ app.get('/on', async (req, res) => {
     })
   }
 
-  deviceState.lightOn = true
-  syncUpdatedAt()
+  setActiveLight('red')
 
   res.json({
     success: true,
@@ -170,12 +186,50 @@ app.get('/off', async (req, res) => {
     })
   }
 
-  deviceState.lightOn = false
-  syncUpdatedAt()
+  setActiveLight('off')
 
   res.json({
     success: true,
     message: '灯已关闭',
+    data: buildDevicePayload()
+  })
+})
+
+app.get('/light/:color', async (req, res) => {
+  await delay(300 + Math.random() * 500)
+
+  const color = req.params.color
+  const allowedColors = ['red', 'yellow', 'green', 'off']
+
+  if (simulateFailure) {
+    return res.status(500).json({
+      success: false,
+      message: '操作失败：设备未响应',
+      data: null
+    })
+  }
+
+  if (!deviceState.systemOnline) {
+    return res.json({
+      success: false,
+      message: '操作失败：设备当前离线',
+      data: null
+    })
+  }
+
+  if (!allowedColors.includes(color)) {
+    return res.status(404).json({
+      success: false,
+      message: '接口不存在',
+      data: null
+    })
+  }
+
+  setActiveLight(color)
+
+  res.json({
+    success: true,
+    message: color === 'off' ? '灯已关闭' : '灯已打开',
     data: buildDevicePayload()
   })
 })
@@ -223,6 +277,10 @@ app.listen(PORT, () => {
   console.log('  ├─ GET /status            获取设备状态')
   console.log('  ├─ GET /on                打开灯')
   console.log('  ├─ GET /off               关闭灯')
+  console.log('  ├─ GET /light/red         切换红灯')
+  console.log('  ├─ GET /light/yellow      切换黄灯')
+  console.log('  ├─ GET /light/green       切换绿灯')
+  console.log('  ├─ GET /light/off         关闭灯')
   console.log('  ├─ GET /mock/set-offline  模拟设备离线')
   console.log('  ├─ GET /mock/set-online   模拟设备上线')
   console.log('  ├─ GET /mock/set-fail     开启失败模拟')
