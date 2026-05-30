@@ -1,14 +1,7 @@
 import { computed, onUnmounted, ref } from 'vue'
-import { getDeviceStatus, setActiveLight, turnLightOff, turnLightOn } from '@/api/device'
+import { getDeviceStatus, turnLightOff, turnLightOn } from '@/api/device'
 
 const THEME_STORAGE_KEY = 'wifi-light-theme'
-const LIGHT_COLOR_ORDER = ['red', 'yellow', 'green']
-const LIGHT_COLOR_LABELS = {
-  red: '红灯',
-  yellow: '黄灯',
-  green: '绿灯',
-  off: '关闭'
-}
 
 function createDefaultTelemetry() {
   return {
@@ -44,12 +37,6 @@ function formatUptimeClock(totalSeconds) {
 export function useDevice() {
   const systemOnline = ref(false)
   const lightOn = ref(false)
-  const activeLight = ref('off')
-  const lights = ref({
-    red: false,
-    yellow: false,
-    green: false
-  })
   const telemetry = ref(createDefaultTelemetry())
   const theme = ref(getStoredTheme())
   const loading = ref(false)
@@ -63,12 +50,7 @@ export function useDevice() {
   const latencyDisplay = computed(() => `${telemetry.value.latencyMs}ms`)
   const uptimeDisplay = computed(() => formatUptimeClock(telemetry.value.uptimeSeconds))
   const ipDisplay = computed(() => telemetry.value.ipAddress)
-  const activeLightLabel = computed(() => LIGHT_COLOR_LABELS[activeLight.value] || LIGHT_COLOR_LABELS.off)
-  const lightActive = computed(() => activeLight.value !== 'off')
-
-  function normalizeLightColor(color) {
-    return LIGHT_COLOR_ORDER.includes(color) ? color : 'off'
-  }
+  const lightActive = computed(() => lightOn.value)
 
   function persistTheme(nextTheme) {
     if (typeof window !== 'undefined') {
@@ -100,18 +82,9 @@ export function useDevice() {
 
   function syncState(payload) {
     const nextTelemetry = payload?.telemetry || createDefaultTelemetry()
-    const nextActiveLight = normalizeLightColor(payload?.activeLight)
-    const resolvedActiveLight = nextActiveLight === 'off' && payload?.lightOn ? 'red' : nextActiveLight
-    const nextLights = payload?.lights || {}
 
     systemOnline.value = Boolean(payload?.systemOnline)
-    activeLight.value = systemOnline.value ? resolvedActiveLight : 'off'
-    lightOn.value = systemOnline.value && (Boolean(payload?.lightOn) || activeLight.value !== 'off')
-    lights.value = {
-      red: activeLight.value === 'red' || Boolean(nextLights.red),
-      yellow: activeLight.value === 'yellow' || Boolean(nextLights.yellow),
-      green: activeLight.value === 'green' || Boolean(nextLights.green)
-    }
+    lightOn.value = systemOnline.value && Boolean(payload?.lightOn)
     lastSyncAt.value = payload?.updatedAt || ''
     telemetry.value = {
       signalDbm: Number(nextTelemetry.signalDbm ?? -45),
@@ -129,24 +102,12 @@ export function useDevice() {
         uptimeSeconds: 0
       }
       lightOn.value = false
-      activeLight.value = 'off'
-      lights.value = {
-        red: false,
-        yellow: false,
-        green: false
-      }
     }
   }
 
   function applyOfflineState() {
     systemOnline.value = false
     lightOn.value = false
-    activeLight.value = 'off'
-    lights.value = {
-      red: false,
-      yellow: false,
-      green: false
-    }
     lastSyncAt.value = ''
     stopUptimeTimer()
     telemetry.value = {
@@ -209,40 +170,6 @@ export function useDevice() {
     }
   }
 
-  async function cycleLightColor() {
-    if (!systemOnline.value) {
-      return {
-        success: false,
-        type: 'warning',
-        icon: 'warning',
-        message: '无法控制：请先连接远程服务器'
-      }
-    }
-
-    loading.value = true
-    error.value = ''
-
-    try {
-      const currentIndex = LIGHT_COLOR_ORDER.indexOf(activeLight.value)
-      const nextColor = LIGHT_COLOR_ORDER[(currentIndex + 1) % LIGHT_COLOR_ORDER.length]
-      const response = await setActiveLight(nextColor)
-      syncState(response.data)
-
-      return {
-        success: true,
-        message: `已切换为${activeLightLabel.value}`,
-        icon: 'light-on',
-        type: 'success'
-      }
-    } catch (err) {
-      error.value = err.message || '操作失败'
-      applyOfflineState()
-      return { success: false, message: error.value, type: 'error', icon: 'disconnect' }
-    } finally {
-      loading.value = false
-    }
-  }
-
   function setTheme(nextTheme) {
     theme.value = nextTheme === 'light' ? 'light' : 'dark'
     persistTheme(theme.value)
@@ -260,9 +187,6 @@ export function useDevice() {
     systemOnline,
     lightOn,
     lightActive,
-    activeLight,
-    activeLightLabel,
-    lights,
     telemetry,
     theme,
     loading,
@@ -275,7 +199,6 @@ export function useDevice() {
     ipDisplay,
     fetchStatus,
     toggleLight,
-    cycleLightColor,
     toggleTheme,
     setTheme
   }

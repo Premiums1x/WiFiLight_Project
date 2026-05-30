@@ -11,7 +11,3 @@ export function turnLightOn() {
 export function turnLightOff() {
   return request.get('/off')
 }
-
-export function setActiveLight(color) {
-  return request.get(`/light/${color}`)
-}
