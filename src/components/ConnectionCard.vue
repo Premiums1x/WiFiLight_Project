@@ -30,6 +30,11 @@
 <script setup>
 import { computed } from 'vue'
 
+// ============================================
+// 连接状态卡片组件
+// 显示设备连接状态并提供连接/断开操作
+// ============================================
+
 const props = defineProps({
   isConnected: {
     type: Boolean,
@@ -39,22 +44,27 @@ const props = defineProps({
 
 defineEmits(['toggle'])
 
+
 const statusLabel = computed(() =>
   props.isConnected ? '控制器已在线' : '控制器已断开'
 )
 
+// 根据连接状态显示副标题
 const statusSub = computed(() =>
   props.isConnected ? '连接正常 · 已加密' : '请检查网络连接'
 )
+
 
 const dotColor = computed(() =>
   props.isConnected ? '#34C759' : '#FF3B30'
 )
 
+// 外圈波浪颜色
 const waveColor = computed(() =>
   props.isConnected ? '#34C759' : '#FFB3AF'
 )
 
+// 内圈波浪颜色
 const waveInnerColor = computed(() =>
   props.isConnected ? '#5CDB6B' : '#FFB3AF'
 )

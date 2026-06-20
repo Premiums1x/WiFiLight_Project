@@ -1,29 +1,37 @@
 <template>
+  <!-- Teleport 将 Toast 传送到 body 层级，避免 z-index 冲突 -->
   <Teleport to="body">
+    <!-- 滑动过渡动画 -->
     <Transition name="toast-slide">
       <div v-if="toast.visible" class="hud-toast" :class="toast.type">
         <div class="toast-icon">
+          <!-- 连接成功图标 -->
           <svg v-if="toast.icon === 'connect'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-linecap="round" />
             <polyline points="22 4 12 14.01 9 11.01" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
+          <!-- 断开连接图标 -->
           <svg v-else-if="toast.icon === 'disconnect'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <line x1="15" y1="9" x2="9" y2="15" stroke-linecap="round" />
             <line x1="9" y1="9" x2="15" y2="15" stroke-linecap="round" />
           </svg>
+          <!-- 开灯图标 -->
           <svg v-else-if="toast.icon === 'light-on'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="4" />
             <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m12.72-12.72l-1.41 1.41" stroke-linecap="round" />
           </svg>
+          <!-- 关灯图标 -->
           <svg v-else-if="toast.icon === 'light-off'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
+          <!-- 警告图标 -->
           <svg v-else-if="toast.icon === 'warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-linejoin="round" />
             <line x1="12" y1="9" x2="12" y2="13" stroke-linecap="round" />
             <line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round" />
           </svg>
+          <!-- 默认信息图标 -->
           <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" stroke-linecap="round" />
@@ -37,6 +45,7 @@
 </template>
 
 <script setup>
+// 引入全局 Toast 状态
 import { useToast } from '@/composables/useToast'
 
 const { toast } = useToast()

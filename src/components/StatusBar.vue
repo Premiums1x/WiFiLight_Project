@@ -29,9 +29,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
+// ============================================
+// 状态栏组件
+// 显示当前时间、信号、WiFi、电池图标
+// ============================================
+
+// 当前时间字符串（格式：HH:mm）
 const currentTime = ref('')
+// 定时器引用
 let timer = null
 
+// 更新当前时间
 function updateTime() {
   const d = new Date()
   const h = d.getHours()
@@ -39,11 +47,13 @@ function updateTime() {
   currentTime.value = h + ':' + (m < 10 ? '0' : '') + m
 }
 
+// 挂载、定时器，更新
 onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 15000)
 })
 
+// 组件卸载时清理定时器
 onUnmounted(() => {
   if (timer) clearInterval(timer)
 })

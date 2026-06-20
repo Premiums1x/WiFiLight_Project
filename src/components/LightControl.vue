@@ -80,15 +80,23 @@
 </template>
 
 <script setup>
+// ============================================
+// 灯光控制组件
+// 显示灯泡 SVG 插图和 iOS 风格 Toggle 开关
+// ============================================
+
 const props = defineProps({
+  // 灯光是否开启
   lightOn: {
     type: Boolean,
     default: false
   },
+  // 是否正在加载（控制操作中）
   loading: {
     type: Boolean,
     default: false
   },
+  // 是否禁用控件
   disabled: {
     type: Boolean,
     default: false
@@ -97,7 +105,9 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle'])
 
+// 处理 Toggle 开关切换
 function handleToggle() {
+  // 防止在禁用或加载状态下触发
   if (!props.disabled && !props.loading) {
     emit('toggle')
   }

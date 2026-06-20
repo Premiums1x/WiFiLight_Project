@@ -91,6 +91,12 @@ import ToastMessage from '@/components/ToastMessage.vue'
 import { useDevice } from '@/composables/useDevice'
 import { useToast } from '@/composables/useToast'
 
+// ============================================
+// 根组件 - 主页面布局组装
+// 管理整体 UI 状态、主题切换、灯光控制
+// ============================================
+
+// 引入设备状态管理
 const {
   systemOnline,
   lightActive,
@@ -107,8 +113,14 @@ const {
   toggleTheme
 } = useDevice()
 
+// 引入 Toast 提示
 const toast = useToast()
 
+// ============================================
+// 计算属性
+// ============================================
+
+// 顶部副标题：显示最后同步时间或等待提示
 const headerSubtitle = computed(() => {
   if (!lastSyncAt.value) {
     return 'Awaiting telemetry lock'
@@ -117,6 +129,7 @@ const headerSubtitle = computed(() => {
   return `Last sync ${lastSyncAt.value}`
 })
 
+// 主要状态标签：系统离线 / 灯光开启 / 灯光关闭
 const primaryStateLabel = computed(() => {
   if (!systemOnline.value) {
     return 'LINK LOST'
@@ -125,6 +138,7 @@ const primaryStateLabel = computed(() => {
   return lightActive.value ? 'ACTIVE' : 'STANDBY'
 })
 
+// 副状态标签
 const secondaryStateLabel = computed(() => {
   if (!systemOnline.value) {
     return 'REMOTE SYSTEM OFFLINE'
@@ -133,6 +147,7 @@ const secondaryStateLabel = computed(() => {
   return lightActive.value ? 'RED OUTPUT ENGAGED' : 'SYSTEM READY'
 })
 
+// 活跃颜色配置：灯光开启时红色主题，关闭时金色主题
 const activeColorConfig = computed(() => {
   if (lightActive.value) {
     return {
@@ -147,11 +162,17 @@ const activeColorConfig = computed(() => {
   }
 })
 
+// HUD 强调色样式（传递给 CSS 变量）
 const hudAccentStyle = computed(() => ({
   '--accent-color': activeColorConfig.value.accent,
   '--mesh-active': activeColorConfig.value.mesh
 }))
 
+// ============================================
+// 事件处理
+// ============================================
+
+// 处理灯光切换操作
 async function handleLightToggle() {
   const result = await toggleLight()
 
@@ -167,6 +188,11 @@ async function handleLightToggle() {
   toast.showToast(result.message, result.type, result.icon)
 }
 
+// ============================================
+// 生命周期
+// ============================================
+
+// 组件挂载后获取设备状态
 onMounted(async () => {
   const result = await fetchStatus(true)
 

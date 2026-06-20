@@ -71,19 +71,28 @@
 </template>
 
 <script setup>
+// ============================================
+// 快捷统计面板组件
+// 四宫格展示：信号强度、运行时长、本地地址、响应延迟
+// ============================================
+
 defineProps({
+  // 信号强度（如：-45dBm）
   signalStrength: {
     type: String,
     default: '—'
   },
+  // 运行时长格式化字符串（如：02:35）
   uptimeFormatted: {
     type: String,
     default: '—'
   },
+  // 本地 IP 地址
   localIP: {
     type: String,
     default: '—'
   },
+  // 响应延迟（如：12ms）
   pingLatency: {
     type: String,
     default: '—'

@@ -1,7 +1,9 @@
 <template>
+  <!-- 渐隐过渡动画 -->
   <Transition name="overlay-fade">
     <div v-if="visible" class="loading-overlay">
       <div class="loading-panel">
+        <!-- 旋转加载动画 -->
         <div class="loading-ring"></div>
         <p class="loading-title">SYSTEM SYNC</p>
         <p class="loading-text">{{ text }}</p>
@@ -11,11 +13,17 @@
 </template>
 
 <script setup>
+// ============================================
+// 加载遮罩组件
+// 全屏覆盖显示加载状态
+// ============================================
 defineProps({
+  // 是否显示遮罩
   visible: {
     type: Boolean,
     default: false
   },
+  // 加载提示文本
   text: {
     type: String,
     default: '正在同步控制面板...'

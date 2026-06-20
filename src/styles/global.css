@@ -1,10 +1,22 @@
+/* ============================================
+   全局样式文件
+   包含 CSS 变量定义、基础重置和通用样式
+   ============================================ */
+
+/* 导入 Google JetBrains Mono 字体 */
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
 
+/* ============================================
+   CSS 变量 - 设计系统颜色与字体
+   ============================================ */
 :root {
   color-scheme: dark;
   font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
+/* ============================================
+   基础重置 - box-sizing 统一
+   ============================================ */
 *,
 *::before,
 *::after {
@@ -17,11 +29,15 @@ body,
   min-height: 100%;
 }
 
+/* 移动端字体适配 */
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
 }
 
+/* ============================================
+   页面主体样式 - 渐变背景
+   ============================================ */
 body {
   margin: 0;
   min-height: 100vh;
@@ -34,6 +50,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================
+   通用元素重置
+   ============================================ */
 button,
 input,
 textarea,
